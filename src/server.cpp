@@ -7,6 +7,41 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+void handle_client(int client_socket) {
+    char buffer[4096];
+    std::string request;
+    int bytes_received = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
+    
+    if (bytes_received > 0) {
+        buffer[bytes_received] = '\0';  // Null-terminate the buffer
+        request = buffer;
+        
+        // Find the first line of the request (request line)
+        size_t pos = request.find("\r\n");
+        if (pos != std::string::npos) {
+            std::string request_line = request.substr(0, pos);
+            
+            // Split the request line by spaces
+            size_t method_end = request_line.find(' ');
+            size_t path_end = request_line.find(' ', method_end + 1);
+            
+            if (method_end != std::string::npos && path_end != std::string::npos) {
+                std::string method = request_line.substr(0, method_end);
+                std::string path = request_line.substr(method_end + 1, path_end - method_end - 1);
+                
+                
+                
+                // Send a basic HTTP response
+                 std::string pass_message="HTTP/1.1 200 OK\r\n\r\n";
+                 std::string not_found_msg="HTTP/1.1 404 Not Found\r\n\r\n";
+                if(path!="/")send(client_socket, not_found_msg.c_str(), not_found_msg.length(), 0);
+                else send(client_socket,pass_message.c_str(),pass_message.length(),0);
+            }
+        }
+    }
+    
+    close(client_socket);
+}
 
 int main(int argc, char **argv) {
   // Flush after every std::cout / std::cerr
@@ -27,6 +62,7 @@ int main(int argc, char **argv) {
   // Since the tester restarts your program quite often, setting SO_REUSEADDR
   // ensures that we don't run into 'Address already in use' errors
   int reuse = 1;
+  std::cout << "Waiting for a client to connect...\n";
   if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
     std::cerr << "setsockopt failed\n";
     return 1;
@@ -56,8 +92,12 @@ int main(int argc, char **argv) {
   int client=accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
   std::cout << "Client connected\n";
 
-  std::string message="HTTP/1.1 200 OK\r\n\r\n";
-  send(client,message.c_str(),message.length(),0);
+ 
+      char client_ip[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, INET_ADDRSTRLEN);
+        handle_client(client);
+
+  // send(client,message.c_str(),message.length(),0);
   
   close(server_fd);
 
