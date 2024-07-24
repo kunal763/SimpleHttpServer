@@ -47,7 +47,7 @@ void handle_client(int client_socket)
           server_response += "\r\n\r\n" + client_str;
           send(client_socket, server_response.c_str(), server_response.length(), 0);
         }
-        else if(path.substr(1,11)=="user-agent/"){
+        else if(path.find("user-agent/")!=std::string::npos){
           size_t ua_pos = request.find("User-Agent:");
           if (ua_pos != std::string::npos) {
             size_t ua_end = request.find("\r\n", ua_pos);
