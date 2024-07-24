@@ -36,13 +36,14 @@ void handle_client(int client_socket) {
                 std::string server_response="HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "+ std::to_string(client_str.length());
                 server_response+="\r\n\r\n"+client_str;
                  std::string not_found_msg="HTTP/1.1 404 Not Found\r\n\r\n";
+                 std::string pass_message="HTTP/1.1 200 OK\r\n\r\n";
                 if(path_cmd=="echo")send(client_socket,server_response.c_str(),server_response.length(),0);
-                else send(client_socket,not_found_msg.c_str(),not_found_msg.length(),0);
+                else if(path!="/")send(client_socket, not_found_msg.c_str(), not_found_msg.length(), 0);
+                else send(client_socket,pass_message.c_str(),pass_message.length(),0);
                 // Send a basic HTTP response
-                //  std::string pass_message="HTTP/1.1 200 OK\r\n\r\n";
                 
-                // if(path!="/")send(client_socket, not_found_msg.c_str(), not_found_msg.length(), 0);
-                // else send(client_socket,pass_message.c_str(),pass_message.length(),0);
+                
+                
             }
         }
     }
