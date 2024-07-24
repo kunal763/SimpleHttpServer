@@ -35,17 +35,28 @@ void handle_client(int client_socket)
 
         std::string path_cmd="";
         
-        if(path.length()>4)path_cmd = path.substr(1, 4);
-
+        if(path.length()>6)path_cmd = path.substr(1, 5);
+        
         std::string not_found_msg = "HTTP/1.1 404 Not Found\r\n\r\n";
         std::string pass_message = "HTTP/1.1 200 OK\r\n\r\n";
-        if (path_cmd == "echo")
+        if (path.substr(1,5) == "echo/")
         {
           std::string client_str = path.substr(6);
 
           std::string server_response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(client_str.length());
           server_response += "\r\n\r\n" + client_str;
           send(client_socket, server_response.c_str(), server_response.length(), 0);
+        }
+        else if(path.substr(1,11)=="user-agent/"){
+          size_t ua_pos = request.find("User-Agent:");
+          if (ua_pos != std::string::npos) {
+            size_t ua_end = request.find("\r\n", ua_pos);
+            std::string user_agent = request.substr(ua_pos + 11, ua_end - ua_pos - 11);
+            std::string server_resp="HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "+std::to_string(user_agent.length());
+            server_resp+="\r\n\r\n"+user_agent;
+            send(client_socket,server_resp.c_str(),server_resp.length(),0);
+            
+        }
         }
         else if (path != "/")
           send(client_socket, not_found_msg.c_str(), not_found_msg.length(), 0);
