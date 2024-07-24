@@ -32,9 +32,10 @@ void handle_client(int client_socket) {
                 
                 
                 std::string client_str=path.substr(6);
-                char server_response[100];
-                sprintf(server_response,"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s",client_str.length(),client_str);
-                send(client_socket,server_response,100,0);
+                char string_server[100];
+                std::string server_response="HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "+char(client_str.length()+48);
+                server_response+="\r\n\r\n"+client_str.length();
+                send(client_socket,server_response.c_str(),server_response.length(),0);
                 // Send a basic HTTP response
                 //  std::string pass_message="HTTP/1.1 200 OK\r\n\r\n";
                 //  std::string not_found_msg="HTTP/1.1 404 Not Found\r\n\r\n";
