@@ -33,7 +33,7 @@ void handle_client(int client_socket) {
                 
                 std::string client_str=path.substr(6);
                 char string_server[100];
-                std::string server_response="HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "+char(client_str.length()+48);
+                std::string server_response="HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "+client_str.length();
                 server_response+="\r\n\r\n"+client_str.length();
                 send(client_socket,server_response.c_str(),server_response.length(),0);
                 // Send a basic HTTP response
