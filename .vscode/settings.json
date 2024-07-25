@@ -2,6 +2,7 @@
     "files.associations": {
         "*.eta": "html",
         "format": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "iostream": "cpp"
     }
 }

@@ -7,17 +7,23 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <thread>
+#include <filesystem>
+#include <fstream>
 
-void handle_client(int client_socket, const std::string& client_ip) {
-    char buffer[4096];
-    std::string request;
-    int bytes_received = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
+namespace fs = std::filesystem;
 
-    if (bytes_received > 0) {
-        buffer[bytes_received] = '\0';  // Null-terminate the buffer
-        request = buffer;
+void handle_client(int client_socket, const std::string &client_ip, const std::string &directory)
+{
+  char buffer[4096];
+  std::string request;
+  int bytes_received = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
 
-        size_t pos = request.find("\r\n");
+  if (bytes_received > 0)
+  {
+    buffer[bytes_received] = '\0'; // Null-terminate the buffer
+    request = buffer;
+
+    size_t pos = request.find("\r\n");
     if (pos != std::string::npos)
     {
       std::string request_line = request.substr(0, pos);
@@ -52,6 +58,29 @@ void handle_client(int client_socket, const std::string& client_ip) {
             send(client_socket, server_resp.c_str(), server_resp.length(), 0);
           }
         }
+        else if (path.find("/files/") != std::string::npos)
+        {
+          std::string file_name = path.substr(7);
+          std::string file_path = directory + file_name;
+          if (fs::exists(file_path))
+          {
+            auto file_size = fs::file_size(file_path);
+            // I am now reading the file
+            std::ifstream file(file_path, std::ios::binary);
+            if (file)
+            {
+              std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+              std::string resp = "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: " + std::to_string(file_size) + "\r\n\r\n";
+              resp += file_contents;
+              std::cout << "File exists: " << file_path << std::endl;
+              send(client_socket, resp.c_str(), resp.length(), 0);
+            }
+          }
+          else
+          {
+            send(client_socket, not_found_msg.c_str(), not_found_msg.length(), 0);
+          }
+        }
         else if (path != "/")
           send(client_socket, not_found_msg.c_str(), not_found_msg.length(), 0);
         else
@@ -64,55 +93,77 @@ void handle_client(int client_socket, const std::string& client_ip) {
   close(client_socket);
 }
 
-int main() {
-    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_socket == -1) {
-        std::cerr << "Failed to create socket" << std::endl;
-        return -1;
+int main(int argc, char **argv)
+{
+  std::cout << std::unitbuf;
+  std::cerr << std::unitbuf;
+  std::string directory;
+
+  // Parse command-line arguments
+  for (int i = 1; i < argc; ++i)
+  {
+    if (std::string(argv[i]) == "--directory" && i + 1 < argc)
+    {
+      directory = argv[i + 1];
+    }
+  }
+ 
+  int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+  if (server_fd < 0)
+  {
+    std::cerr << "Failed to create server socket\n";
+    return 1;
+  }
+
+  int reuse = 1;
+  std::cout << "Waiting for a client to connect...\n";
+  if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
+  {
+    std::cerr << "setsockopt failed\n";
+    return 1;
+  }
+
+  struct sockaddr_in server_addr;
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_addr.s_addr = INADDR_ANY;
+  server_addr.sin_port = htons(4221);
+
+  if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) != 0)
+  {
+    std::cerr << "Failed to bind to port 4221\n";
+    return 1;
+  }
+
+  int connection_backlog = 10;
+  if (listen(server_fd, connection_backlog) != 0)
+  {
+    std::cerr << "listen failed\n";
+    return 1;
+  }
+
+  std::cout << "Server is listening on port 4221\n";
+
+  while (true)
+  {
+    struct sockaddr_in client_addr;
+    socklen_t client_addr_len = sizeof(client_addr);
+
+    int client_socket = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+    if (client_socket < 0)
+    {
+      std::cerr << "Failed to accept connection\n";
+      continue;
     }
 
-    int opt = 1;
-    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        std::cerr << "setsockopt failed" << std::endl;
-        return -1;
-    }
+    char client_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, INET_ADDRSTRLEN);
+    std::string client_ip_str = client_ip;
+    std::cout << "Accepted connection from " << client_ip_str << std::endl;
 
-    sockaddr_in server_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(4221);
-    server_addr.sin_addr.s_addr = INADDR_ANY;
+    // Create a new thread to handle the client connection and detach it
+    std::thread(handle_client, client_socket, client_ip_str, directory).detach();
+  }
 
-    if (bind(server_socket, (sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
-        std::cerr << "Failed to bind to port 4221" << std::endl;
-        return -1;
-    }
-
-    if (listen(server_socket, SOMAXCONN) == -1) {
-        std::cerr << "Failed to listen on socket" << std::endl;
-        return -1;
-    }
-
-    std::cout << "Server is listening on port 4221" << std::endl;
-
-    while (true) {
-        sockaddr_in client_addr;
-        socklen_t client_size = sizeof(client_addr);
-        int client_socket = accept(server_socket, (sockaddr*)&client_addr, &client_size);
-        if (client_socket == -1) {
-            std::cerr << "Failed to accept connection" << std::endl;
-            continue;
-        }
-
-        char client_ip[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, INET_ADDRSTRLEN);
-        std::string client_ip_str = client_ip;
-
-        std::cout << "Accepted connection from " << client_ip_str << std::endl;
-
-        // Create a new thread to handle the client connection
-        std::thread(handle_client, client_socket, client_ip_str).detach();
-    }
-
-    close(server_socket);
-    return 0;
+  close(server_fd);
+  return 0;
 }
