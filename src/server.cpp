@@ -95,6 +95,17 @@ void handle_client(int client_socket, const std::string &client_ip, const std::s
             std::string file_name = path.substr(7);
             std::string file_path = directory + file_name;
             std::cout<<"this is post method\n";
+            size_t pos_of_content=request.find("application/octet-stream\r\n\r\n")+28;
+            std::string content=request.substr(pos_of_content);
+            std::string resp="HTTP/1.1 201 Created\r\n\r\n";
+            std::ofstream file(file_path);
+            if(file){
+              file<<content;
+              send(client_socket,resp.c_str(),resp.length(),0);
+              file.close();
+            }
+            
+
           }
         }
         
