@@ -18,11 +18,11 @@ This project is a simple HTTP server implemented in C++ that supports concurrent
 ## Installation
 
 1. **Install `zlib`**:
-   ```sh
-   sudo pacman -S zlib              # For Arch-Linux
-   sudo apt-get install zlib1g-dev  # For Debian-based systems
-   brew install zlib                # For macOS
-   ```
+```sh
+sudo pacman -S zlib              # For Arch-Linux
+sudo apt-get install zlib1g-dev  # For Debian-based systems
+brew install zlib                # For macOS
+```
 2.**Cloning the repository**:
    ```sh
    git clonehttps://github.com/kunal763/SimpleHttpServer.git
@@ -40,7 +40,7 @@ This project is a simple HTTP server implemented in C++ that supports concurrent
 Run the compiled server executable. You can specify the directory where the files are stored using the `--directory` flag.
 
    ```sh
-.   /http_server --directory /path/to/files
+./http_server --directory /path/to/files
    ```
 ### Example Usage
 
