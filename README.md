@@ -20,5 +20,32 @@ This project is a simple HTTP server implemented in C++ that supports concurrent
 
 1. **Install `zlib`**:
    ```sh
+   sudo pacman -S zlib              # For Arch-Linux
    sudo apt-get install zlib1g-dev  # For Debian-based systems
    brew install zlib                # For macOS
+2.**Cloning the repository**:
+   ```sh
+   git clone
+```
+3.Compile The Server
+```sh
+   g++ -std=c++17 -o http_server main.cpp -lz
+ ```
+
+## Usage
+
+### Starting the Server
+
+Run the compiled server executable. You can specify the directory where the files are stored using the `--directory` flag.
+
+```sh
+./http_server --directory /path/to/files
+```
+### Example Usage
+
+1. **Start the Server**:
+
+   ```sh
+   ./http_server --directory /var/www/html
+   ```
+   This command starts the HTTP server and sets `/var/www/html` as the directory where the server will look for files to serve.
