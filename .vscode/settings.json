@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.eta": "html",
-        "format": "cpp"
+        "format": "cpp",
+        "thread": "cpp"
     }
 }
