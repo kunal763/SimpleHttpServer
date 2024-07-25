@@ -12,8 +12,7 @@ This project is a simple HTTP server implemented in C++ that supports concurrent
 ## Requirements
 
 - C++17 or later
-- zlib library
-- gzstream library (for gzip compression)
+- zlib library (for gzip compression)
 - A POSIX-compliant operating system (e.g., Linux, macOS)
 
 ## Installation
@@ -23,6 +22,7 @@ This project is a simple HTTP server implemented in C++ that supports concurrent
    sudo pacman -S zlib              # For Arch-Linux
    sudo apt-get install zlib1g-dev  # For Debian-based systems
    brew install zlib                # For macOS
+   ```
 2.**Cloning the repository**:
    ```sh
    git clonehttps://github.com/kunal763/SimpleHttpServer.git
