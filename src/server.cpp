@@ -40,7 +40,22 @@ void handle_client(int client_socket, const std::string &client_ip, const std::s
         std::string pass_message = "HTTP/1.1 200 OK\r\n\r\n";
         if (method == "GET")
         {
-          if (path.substr(0, 6) == "/echo/")
+          if (request.find("Accept-Encoding: ") != std::string::npos)
+          {
+            size_t encoding_pos = request.find("Accept-Encoding: ") + 17;
+            std::string encoding = request.substr(encoding_pos);
+            std::string resp = "";
+            if (encoding == "gzip\r\n\r\n")
+            {
+              resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\n\r\n";
+            }
+            else
+            {
+              resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
+            }
+            send(client_socket, resp.c_str(), resp.length(), 0);
+          }
+          else if (path.substr(0, 6) == "/echo/")
           {
             std::string client_str = path.substr(6);
 
@@ -78,37 +93,38 @@ void handle_client(int client_socket, const std::string &client_ip, const std::s
                 send(client_socket, resp.c_str(), resp.length(), 0);
               }
             }
+
             else
             {
               send(client_socket, not_found_msg.c_str(), not_found_msg.length(), 0);
             }
           }
+
           else if (path != "/")
             send(client_socket, not_found_msg.c_str(), not_found_msg.length(), 0);
           else
             send(client_socket, pass_message.c_str(), pass_message.length(), 0);
         }
-        if (method=="POST")
+        if (method == "POST")
         {
-            if (path.find("/files/") != std::string::npos)
+          if (path.find("/files/") != std::string::npos)
           {
             std::string file_name = path.substr(7);
             std::string file_path = directory + file_name;
-            std::cout<<"this is post method\n";
-            size_t pos_of_content=request.find("application/octet-stream\r\n\r\n")+28;
-            std::string content=request.substr(pos_of_content);
-            std::string resp="HTTP/1.1 201 Created\r\n\r\n";
+            std::cout << "this is post method\n";
+            size_t pos_of_content = request.find("application/octet-stream\r\n\r\n") + 28;
+            std::string content = request.substr(pos_of_content);
+            std::string resp = "HTTP/1.1 201 Created\r\n\r\n";
             std::ofstream file(file_path);
-            if(file){
-              file<<content;
-              send(client_socket,resp.c_str(),resp.length(),0);
+            if (file)
+            {
+              file << content;
+              send(client_socket, resp.c_str(), resp.length(), 0);
               file.close();
             }
-            
-
           }
         }
-        
+
         // Send a basic HTTP response
       }
     }
