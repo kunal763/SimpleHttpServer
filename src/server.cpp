@@ -43,18 +43,41 @@ void handle_client(int client_socket, const std::string &client_ip, const std::s
           if (request.find("Accept-Encoding: ") != std::string::npos)
           {
             size_t encoding_pos = request.find("Accept-Encoding: ") + 17;
-            std::string encoding = request.substr(encoding_pos);
-            std::string resp = "";
-            if (encoding == "gzip\r\n\r\n")
+            std::string encoding_list_str = request.substr(encoding_pos);
+            std::string encoding="";
+            int flag = 0;
+            for (int i = 0; i < encoding_list_str.length(); i++)
             {
-              resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\n\r\n";
+              if (encoding_list_str[i] != ',')
+                encoding += encoding_list_str[i];
+              else if (encoding_list_str[i] == ',')
+              {
+                std::string resp = "";
+                if (encoding == "gzip"|| encoding==" gzip")
+                {
+                  resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\n\r\n";
+                  send(client_socket, resp.c_str(), resp.length(), 0);
+                  flag = 1;
+                  break;
+                }
+                encoding = "";
+              }
+              if (encoding_list_str[i] == '\r' && (encoding == " gzip\r"|| encoding=="gzip\r"))
+              {
+                std::string resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\n\r\n";
+                send(client_socket, resp.c_str(), resp.length(), 0);
+                flag = 1;
+                break;
+              }
             }
-            else
+            if (flag == 0)
             {
-              resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
+
+              std::string resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
+              send(client_socket, resp.c_str(), resp.length(), 0);
             }
-            send(client_socket, resp.c_str(), resp.length(), 0);
           }
+
           else if (path.substr(0, 6) == "/echo/")
           {
             std::string client_str = path.substr(6);
