@@ -9,8 +9,37 @@
 #include <thread>
 #include <filesystem>
 #include <fstream>
-
+#include<zlib.h>
 namespace fs = std::filesystem;
+
+
+  std::string gzip_compress(const std::string &data) {
+    z_stream zs;
+    memset(&zs, 0, sizeof(zs));
+    if (deflateInit2(&zs, Z_BEST_COMPRESSION, Z_DEFLATED, 15 + 16, 8, Z_DEFAULT_STRATEGY) != Z_OK) {
+       throw std::runtime_error("deflateInit2 failed while compressing.");
+    }
+    zs.next_in = (Bytef *)data.data();
+    zs.avail_in = data.size();
+    int ret;
+    char outbuffer[32768];
+    std::string outstring;
+    do {
+        zs.next_out = reinterpret_cast<Bytef *>(outbuffer);
+        zs.avail_out = sizeof(outbuffer);
+        ret = deflate(&zs, Z_FINISH);
+        if (outstring.size() < zs.total_out) {
+            outstring.append(outbuffer, zs.total_out - outstring.size());
+        }
+    } while (ret == Z_OK);
+    deflateEnd(&zs);
+    if (ret != Z_STREAM_END) {
+        throw std::runtime_error("Exception during zlib compression: (" + std::to_string(ret) + ") " + zs.msg);
+    }
+    return outstring;
+
+}
+
 
 void handle_client(int client_socket, const std::string &client_ip, const std::string &directory)
 {
@@ -44,6 +73,7 @@ void handle_client(int client_socket, const std::string &client_ip, const std::s
           {
             size_t encoding_pos = request.find("Accept-Encoding: ") + 17;
             std::string encoding_list_str = request.substr(encoding_pos);
+            
             std::string encoding="";
             int flag = 0;
             for (int i = 0; i < encoding_list_str.length(); i++)
@@ -63,8 +93,13 @@ void handle_client(int client_socket, const std::string &client_ip, const std::s
                 encoding = "";
               }
               if (encoding_list_str[i] == '\r' && (encoding == " gzip\r"|| encoding=="gzip\r"))
-              {
-                std::string resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\n\r\n";
+              { std::string client_str="";
+                if(path.substr(0, 6) == "/echo/"){
+                   client_str = path.substr(6);
+                }
+                std::string compressed=gzip_compress(client_str);
+
+                std::string resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\nContent-Length: "+std::to_string(compressed.length())+"\r\n\r\n"+compressed;
                 send(client_socket, resp.c_str(), resp.length(), 0);
                 flag = 1;
                 break;

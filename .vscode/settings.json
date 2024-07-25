@@ -3,6 +3,9 @@
         "*.eta": "html",
         "format": "cpp",
         "thread": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "sstream": "cpp",
+        "iosfwd": "cpp",
+        "stdexcept": "cpp"
     }
 }
