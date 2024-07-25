@@ -25,12 +25,13 @@ This project is a simple HTTP server implemented in C++ that supports concurrent
    brew install zlib                # For macOS
 2.**Cloning the repository**:
    ```sh
-   git clone
-```
+   git clonehttps://github.com/kunal763/SimpleHttpServer.git
+   cd SimpleHttpServer
+   ```
 3.Compile The Server
-```sh
-   g++ -std=c++17 -o http_server main.cpp -lz
- ```
+   ```sh
+   g++ -std=c++17 -o http_server src/server.cpp -lz
+```
 
 ## Usage
 
@@ -38,9 +39,9 @@ This project is a simple HTTP server implemented in C++ that supports concurrent
 
 Run the compiled server executable. You can specify the directory where the files are stored using the `--directory` flag.
 
-```sh
-./http_server --directory /path/to/files
-```
+   ```sh
+.   /http_server --directory /path/to/files
+   ```
 ### Example Usage
 
 1. **Start the Server**:
@@ -49,3 +50,11 @@ Run the compiled server executable. You can specify the directory where the file
    ./http_server --directory /var/www/html
    ```
    This command starts the HTTP server and sets `/var/www/html` as the directory where the server will look for files to serve.
+   
+2. **Access the Server**:
+
+   Open a web browser or use a tool like curl to make a request to the server:
+   ```sh
+   curl http://localhost:4221/index.html
+   ```
+   Replace `index.html` with the path to any file you want to access in the specified directory. The server will return the requested file,
