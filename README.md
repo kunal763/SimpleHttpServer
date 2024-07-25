@@ -1,39 +1,24 @@
-[![progress-banner](https://backend.codecrafters.io/progress/http-server/eb041881-9a55-4e7a-8960-64efb7f6db33)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# HTTP Server with Gzip Compression
 
-This is a starting point for C++ solutions to the
-["Build Your Own HTTP server" Challenge](https://app.codecrafters.io/courses/http-server/overview).
+This project is a simple HTTP server implemented in C++ that supports concurrent connections and gzip compression. It includes functionality to handle client requests, compress data using gzip, and convert compressed data to a hexadecimal string.
 
-[HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) is the
-protocol that powers the web. In this challenge, you'll build a HTTP/1.1 server
-that is capable of serving multiple clients.
+## Features
 
-Along the way you'll learn about TCP servers,
-[HTTP request syntax](https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html),
-and more.
+- **Concurrent Connections**: Uses multithreading to handle multiple client connections simultaneously.
+- **Gzip Compression**: Compresses response data using the gzip format.
+- **Hexadecimal Encoding**: Converts compressed data to a hexadecimal string for easy readability and debugging.
+- **File Handling**: Checks if files exist in the specified directory and reads their contents.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+## Requirements
 
-# Passing the first stage
+- C++17 or later
+- zlib library
+- gzstream library (for gzip compression)
+- A POSIX-compliant operating system (e.g., Linux, macOS)
 
-The entry point for your HTTP server implementation is in `src/server.cpp`.
-Study and uncomment the relevant code, and push your changes to pass the first
-stage:
+## Installation
 
-```sh
-git add .
-git commit -m "pass 1st stage" # any msg
-git push origin master
-```
-
-Time to move on to the next stage!
-
-# Stage 2 & beyond
-
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `cmake` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `src/server.cpp`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+1. **Install `zlib`**:
+   ```sh
+   sudo apt-get install zlib1g-dev  # For Debian-based systems
+   brew install zlib                # For macOS
